@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingresar — Sistema de Citas Médicas</title>
+    <style>
+        :root {
+            --bg: #F2F4F1;
+            --panel-dark: #1F3A38;
+            --panel-dark-soft: #2C4F4C;
+            --white: #FFFFFF;
+            --text: #1C2321;
+            --text-muted: #5B6663;
+            --text-on-dark: #F2F4F1;
+            --text-on-dark-muted: #A9BFB9;
+            --border: #DDE3DF;
+            --error: #A8433B;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            background: var(--bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            color: var(--text);
+        }
+
+        .contenedor {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .panel-identidad {
+            flex: 0 0 42%;
+            background: var(--panel-dark);
+            color: var(--text-on-dark);
+            padding: 56px 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .panel-identidad .marca {
+            font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+            font-size: 28px;
+            line-height: 1.3;
+        }
+
+        .panel-identidad .marca span {
+            display: block;
+            font-size: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            color: var(--text-on-dark-muted);
+            margin-top: 10px;
+        }
+
+        .figura { width: 100%; max-width: 260px; }
+
+        .pie-panel {
+            font-size: 13px;
+            color: var(--text-on-dark-muted);
+            line-height: 1.6;
+        }
+
+        .panel-formulario {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+        }
+
+        .tarjeta { width: 100%; max-width: 360px; }
+
+        .tarjeta h1 {
+            font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+            font-size: 26px;
+            font-weight: normal;
+            margin: 0 0 6px;
+        }
+
+        .tarjeta p.intro {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin: 0 0 32px;
+            line-height: 1.5;
+        }
+
+        .campo { margin-bottom: 20px; }
+
+        .campo label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .campo input {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--text);
+            background: var(--white);
+        }
+
+        .campo input:focus {
+            outline: 2px solid var(--panel-dark);
+            outline-offset: 1px;
+            border-color: var(--panel-dark);
+        }
+
+        .boton-entrar {
+            width: 100%;
+            padding: 12px;
+            background: var(--panel-dark);
+            color: var(--white);
+            border: none;
+            border-radius: 4px;
+            font-size: 15px;
+            font-family: inherit;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .boton-entrar:hover { background: var(--panel-dark-soft); }
+        .boton-entrar:disabled { background: var(--text-on-dark-muted); cursor: not-allowed; }
+
+        .mensaje {
+            margin-top: 16px;
+            font-size: 14px;
+            padding: 10px 12px;
+            border-radius: 4px;
+            display: none;
+        }
+        .mensaje.error { display: block; background: #F7E8E6; color: var(--error); }
+        .mensaje.exito { display: block; background: #E9F0EB; color: var(--panel-dark); }
+
+        @media (max-width: 760px) {
+            .contenedor { flex-direction: column; }
+            .panel-identidad { flex: none; padding: 32px 28px; }
+            .figura { display: none; }
+            .panel-formulario { padding: 32px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="contenedor">
+
+    <div class="panel-identidad">
+        <div class="marca">
+            Sistema de Citas Médicas
+            <span>Registro y seguimiento de citas para pacientes, médicos y personal administrativo.</span>
+        </div>
+
+        <svg class="figura" viewBox="0 0 220 160" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="60" cy="80" r="46" stroke="#A9BFB9" stroke-width="1.2" opacity="0.5"/>
+            <circle cx="150" cy="55" r="28" stroke="#A9BFB9" stroke-width="1.2" opacity="0.5"/>
+            <path d="M20 130 Q110 100 200 135" stroke="#A9BFB9" stroke-width="1.2" opacity="0.5" fill="none"/>
+        </svg>
+
+        <div class="pie-panel">
+            Proyecto final — Sistemas Operativos I<br>
+            UMG, Ciclo 6
+        </div>
+    </div>
+
+    <div class="panel-formulario">
+        <div class="tarjeta">
+            <h1>Ingresar</h1>
+            <p class="intro">Ingresá con el correo y la contraseña de tu cuenta de paciente, médico o administrador.</p>
+
+            <form id="formulario-login">
+                <div class="campo">
+                    <label for="correo">Correo electrónico</label>
+                    <input type="email" id="correo" name="correo" required autocomplete="username">
+                </div>
+
+                <div class="campo">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="boton-entrar" id="boton-entrar">Ingresar</button>
+
+                <div id="mensaje" class="mensaje" role="status"></div>
+            </form>
+
+            <span style="display: block; text-align: center; margin-top: 18px; font-size: 13px; color: var(--text-muted);">
+        ¿No tenés cuenta? <a href="registro.html" style="color: var(--panel-dark); text-decoration: underline;">Registrate acá</a>
+      </span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Vacío = ruta relativa al mismo origen. Ver nota en app.js.
+    const API_BASE = "";
+
+    const formulario = document.getElementById("formulario-login");
+    const boton = document.getElementById("boton-entrar");
+    const mensaje = document.getElementById("mensaje");
+
+    // Mapa de rol -> dashboard correspondiente.
+    const DASHBOARD_POR_ROL = {
+        PACIENTE: "dashboard-paciente.html",
+        MEDICO: "dashboard-medico.html",
+        ADMINISTRADOR: "dashboard-administrador.html"
+    };
+
+    function mostrarMensaje(texto, tipo) {
+        mensaje.textContent = texto;
+        mensaje.className = "mensaje " + tipo;
+    }
+
+    formulario.addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+
+        const correo = document.getElementById("correo").value.trim();
+        const password = document.getElementById("password").value;
+        const credenciales = btoa(`${correo}:${password}`);
+
+        boton.disabled = true;
+        boton.textContent = "Verificando…";
+        mensaje.className = "mensaje";
+
+        try {
+            const respuesta = await fetch(`${API_BASE}/api/auth/me`, {
+                headers: { "Authorization": "Basic " + credenciales }
+            });
+
+            if (respuesta.ok) {
+                const usuario = await respuesta.json();
+
+                sessionStorage.setItem("authHeader", "Basic " + credenciales);
+                sessionStorage.setItem("usuario", JSON.stringify(usuario));
+
+                mostrarMensaje(`Bienvenido/a, ${usuario.nombre} (${usuario.rol}).`, "exito");
+
+                const destino = DASHBOARD_POR_ROL[usuario.rol] || "login.html";
+                setTimeout(() => {
+                    window.location.href = destino;
+                }, 600);
+            } else if (respuesta.status === 401) {
+                mostrarMensaje("Correo o contraseña incorrectos.", "error");
+            } else {
+                mostrarMensaje("Algo salió mal (código " + respuesta.status + ").", "error");
+            }
+        } catch (error) {
+            mostrarMensaje("No se pudo conectar con el servidor. Verificá que esté corriendo en el puerto 8080.", "error");
+        } finally {
+            boton.disabled = false;
+            boton.textContent = "Ingresar";
+        }
+    });
+</script>
+
+</body>
+</html>

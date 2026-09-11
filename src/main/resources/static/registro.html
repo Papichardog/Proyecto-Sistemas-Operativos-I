@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crear cuenta — Sistema de Citas Médicas</title>
+  <style>
+    :root {
+      --bg: #F2F4F1;
+      --panel-dark: #1F3A38;
+      --panel-dark-soft: #2C4F4C;
+      --white: #FFFFFF;
+      --text: #1C2321;
+      --text-muted: #5B6663;
+      --text-on-dark: #F2F4F1;
+      --text-on-dark-muted: #A9BFB9;
+      --border: #DDE3DF;
+      --error: #A8433B;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      color: var(--text);
+    }
+
+    .contenedor { display: flex; width: 100%; min-height: 100vh; }
+
+    .panel-identidad {
+      flex: 0 0 38%;
+      background: var(--panel-dark);
+      color: var(--text-on-dark);
+      padding: 56px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .panel-identidad .marca {
+      font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      font-size: 26px;
+      line-height: 1.3;
+    }
+
+    .panel-identidad .marca span {
+      display: block;
+      font-size: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      color: var(--text-on-dark-muted);
+      margin-top: 10px;
+    }
+
+    .pie-panel { font-size: 13px; color: var(--text-on-dark-muted); line-height: 1.6; }
+
+    .panel-formulario {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 32px;
+    }
+
+    .tarjeta { width: 100%; max-width: 480px; }
+
+    .tarjeta h1 {
+      font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      font-size: 25px;
+      font-weight: normal;
+      margin: 0 0 6px;
+    }
+
+    .tarjeta p.intro {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin: 0 0 26px;
+      line-height: 1.5;
+    }
+
+    .grupo-campos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .campo { margin-bottom: 16px; }
+    .campo.completo { grid-column: 1 / -1; }
+
+    .campo label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .campo input, .campo select {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--white);
+    }
+
+    .campo input:focus, .campo select:focus {
+      outline: 2px solid var(--panel-dark);
+      outline-offset: 1px;
+      border-color: var(--panel-dark);
+    }
+
+    .boton-crear {
+      width: 100%;
+      padding: 12px;
+      background: var(--panel-dark);
+      color: var(--white);
+      border: none;
+      border-radius: 4px;
+      font-size: 15px;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .boton-crear:hover { background: var(--panel-dark-soft); }
+    .boton-crear:disabled { background: var(--text-on-dark-muted); cursor: not-allowed; }
+
+    .mensaje {
+      margin-top: 16px;
+      font-size: 14px;
+      padding: 10px 12px;
+      border-radius: 4px;
+      display: none;
+    }
+    .mensaje.error { display: block; background: #F7E8E6; color: var(--error); }
+    .mensaje.exito { display: block; background: #E9F0EB; color: var(--panel-dark); }
+
+    .enlace-volver {
+      display: block;
+      text-align: center;
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .enlace-volver a { color: var(--panel-dark); text-decoration: underline; }
+
+    @media (max-width: 760px) {
+      .contenedor { flex-direction: column; }
+      .panel-identidad { flex: none; padding: 28px 24px; }
+      .panel-formulario { padding: 28px 20px; }
+      .grupo-campos { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="contenedor">
+
+  <div class="panel-identidad">
+    <div class="marca">
+      Sistema de Citas Médicas
+      <span>Creá tu cuenta de paciente para agendar y dar seguimiento a tus consultas.</span>
+    </div>
+    <div class="pie-panel">
+      Proyecto final — Sistemas Operativos I<br>
+      UMG, Ciclo 6
+    </div>
+  </div>
+
+  <div class="panel-formulario">
+    <div class="tarjeta">
+      <h1>Crear cuenta de paciente</h1>
+      <p class="intro">Completá tus datos. Vas a poder iniciar sesión apenas termines.</p>
+
+      <form id="formulario-registro">
+        <div class="grupo-campos">
+          <div class="campo">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" required>
+          </div>
+          <div class="campo">
+            <label for="apellido">Apellido</label>
+            <input type="text" id="apellido" required>
+          </div>
+          <div class="campo completo">
+            <label for="correo">Correo electrónico</label>
+            <input type="email" id="correo" required autocomplete="username">
+          </div>
+          <div class="campo completo">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" required minlength="4" autocomplete="new-password">
+          </div>
+          <div class="campo">
+            <label for="telefono">Teléfono</label>
+            <input type="text" id="telefono">
+          </div>
+          <div class="campo">
+            <label for="fecha-nacimiento">Fecha de nacimiento</label>
+            <input type="date" id="fecha-nacimiento" required>
+          </div>
+          <div class="campo">
+            <label for="numero-expediente">Número de expediente</label>
+            <input type="text" id="numero-expediente" required placeholder="Ej. EXP-0001">
+          </div>
+          <div class="campo">
+            <label for="tipo-sangre">Tipo de sangre</label>
+            <select id="tipo-sangre">
+              <option value="">No sé / prefiero no decir</option>
+              <option>O+</option><option>O-</option>
+              <option>A+</option><option>A-</option>
+              <option>B+</option><option>B-</option>
+              <option>AB+</option><option>AB-</option>
+            </select>
+          </div>
+          <div class="campo completo">
+            <label for="direccion">Dirección</label>
+            <input type="text" id="direccion">
+          </div>
+        </div>
+
+        <button type="submit" class="boton-crear" id="boton-crear">Crear cuenta</button>
+        <div id="mensaje" class="mensaje" role="status"></div>
+
+        <span class="enlace-volver">¿Ya tenés cuenta? <a href="login.html">Iniciá sesión acá</a></span>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API_BASE = "";
+
+  const formulario = document.getElementById("formulario-registro");
+  const boton = document.getElementById("boton-crear");
+  const mensaje = document.getElementById("mensaje");
+
+  formulario.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+
+    boton.disabled = true;
+    boton.textContent = "Creando cuenta…";
+    mensaje.className = "mensaje";
+
+    const cuerpo = {
+      nombre: document.getElementById("nombre").value.trim(),
+      apellido: document.getElementById("apellido").value.trim(),
+      correo: document.getElementById("correo").value.trim(),
+      password: document.getElementById("password").value,
+      telefono: document.getElementById("telefono").value.trim(),
+      fechaNacimiento: document.getElementById("fecha-nacimiento").value,
+      numeroExpediente: document.getElementById("numero-expediente").value.trim(),
+      tipoSangre: document.getElementById("tipo-sangre").value,
+      direccion: document.getElementById("direccion").value.trim()
+    };
+
+    try {
+      // Este endpoint es público (permitAll en SecurityConfig): no se
+      // manda header de Authorization, cualquiera puede auto-registrarse
+      // como Paciente.
+      const respuesta = await fetch(`${API_BASE}/api/pacientes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cuerpo)
+      });
+
+      if (respuesta.ok) {
+        mensaje.textContent = "Cuenta creada correctamente. Redirigiendo al login…";
+        mensaje.className = "mensaje exito";
+        setTimeout(() => { window.location.href = "login.html"; }, 1200);
+      } else {
+        mensaje.textContent = "No se pudo crear la cuenta. Verificá que el correo y el número de expediente no estén ya registrados.";
+        mensaje.className = "mensaje error";
+      }
+    } catch (error) {
+      mensaje.textContent = "No se pudo conectar con el servidor.";
+      mensaje.className = "mensaje error";
+    } finally {
+      boton.disabled = false;
+      boton.textContent = "Crear cuenta";
+    }
+  });
+</script>
+
+</body>
+</html>

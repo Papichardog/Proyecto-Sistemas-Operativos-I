@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de administración — Sistema de Citas Médicas</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<header class="encabezado">
+  <div class="marca">Sistema de Citas Médicas</div>
+  <div class="usuario-info">
+    <span>Hola, <strong id="nombre-usuario">—</strong></span>
+    <span class="badge-rol" id="rol-usuario">—</span>
+    <button class="boton-salir" id="boton-salir">Cerrar sesión</button>
+  </div>
+</header>
+
+<main class="contenido">
+  <h1>Panel de administración</h1>
+
+  <div class="tarjetas-resumen" id="tarjetas-resumen">
+    <div class="tarjeta-resumen"><div class="numero">—</div><div class="etiqueta">Pacientes</div></div>
+    <div class="tarjeta-resumen"><div class="numero">—</div><div class="etiqueta">Médicos</div></div>
+    <div class="tarjeta-resumen"><div class="numero">—</div><div class="etiqueta">Citas totales</div></div>
+    <div class="tarjeta-resumen"><div class="numero">—</div><div class="etiqueta">Citas de hoy</div></div>
+  </div>
+
+  <section class="seccion">
+    <h2>Nueva especialidad</h2>
+    <p class="subtitulo">Necesaria antes de poder registrar un médico con esa especialidad.</p>
+    <form id="formulario-especialidad">
+      <div class="grupo-campos">
+        <div class="campo">
+          <label for="esp-nombre">Nombre</label>
+          <input type="text" id="esp-nombre" required placeholder="Ej. Cardiología">
+        </div>
+        <div class="campo">
+          <label for="esp-descripcion">Descripción</label>
+          <input type="text" id="esp-descripcion" placeholder="Opcional">
+        </div>
+      </div>
+      <button type="submit" class="boton">Crear especialidad</button>
+      <div id="mensaje-especialidad" class="mensaje" role="status"></div>
+    </form>
+  </section>
+
+  <section class="seccion">
+    <h2>Nueva clínica</h2>
+    <p class="subtitulo">Necesaria antes de poder registrar un consultorio.</p>
+    <form id="formulario-clinica">
+      <div class="grupo-campos">
+        <div class="campo">
+          <label for="cli-nombre">Nombre</label>
+          <input type="text" id="cli-nombre" required placeholder="Ej. Clínica Central">
+        </div>
+        <div class="campo">
+          <label for="cli-direccion">Dirección</label>
+          <input type="text" id="cli-direccion" required placeholder="Ej. 6ta Avenida, Zona 1">
+        </div>
+      </div>
+      <button type="submit" class="boton">Crear clínica</button>
+      <div id="mensaje-clinica" class="mensaje" role="status"></div>
+    </form>
+  </section>
+
+  <section class="seccion">
+    <h2>Nuevo consultorio</h2>
+    <form id="formulario-consultorio">
+      <div class="grupo-campos">
+        <div class="campo">
+          <label for="con-numero">Número</label>
+          <input type="text" id="con-numero" required placeholder="Ej. 101">
+        </div>
+        <div class="campo">
+          <label for="con-piso">Piso</label>
+          <input type="number" id="con-piso" min="0" required>
+        </div>
+        <div class="campo completo">
+          <label for="con-equipo">Equipo disponible</label>
+          <input type="text" id="con-equipo" placeholder="Ej. Camilla, tensiómetro (opcional)">
+        </div>
+        <div class="campo completo">
+          <label for="con-clinica">Clínica</label>
+          <select id="con-clinica" required>
+            <option value="">Cargando clínicas…</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="boton">Crear consultorio</button>
+      <div id="mensaje-consultorio" class="mensaje" role="status"></div>
+    </form>
+  </section>
+
+  <section class="seccion">
+    <h2>Registrar médico</h2>
+    <form id="formulario-medico">
+      <div class="grupo-campos">
+        <div class="campo">
+          <label for="med-nombre">Nombre</label>
+          <input type="text" id="med-nombre" required>
+        </div>
+        <div class="campo">
+          <label for="med-apellido">Apellido</label>
+          <input type="text" id="med-apellido" required>
+        </div>
+        <div class="campo">
+          <label for="med-correo">Correo</label>
+          <input type="email" id="med-correo" required>
+        </div>
+        <div class="campo">
+          <label for="med-password">Contraseña</label>
+          <input type="password" id="med-password" required>
+        </div>
+        <div class="campo">
+          <label for="med-telefono">Teléfono</label>
+          <input type="text" id="med-telefono">
+        </div>
+        <div class="campo">
+          <label for="med-fecha-nacimiento">Fecha de nacimiento</label>
+          <input type="date" id="med-fecha-nacimiento" required>
+        </div>
+        <div class="campo">
+          <label for="med-colegiado">Número de colegiado</label>
+          <input type="text" id="med-colegiado" required>
+        </div>
+        <div class="campo">
+          <label for="med-experiencia">Años de experiencia</label>
+          <input type="number" id="med-experiencia" min="0" value="0">
+        </div>
+        <div class="campo completo">
+          <label for="med-especialidad">Especialidad</label>
+          <select id="med-especialidad" required>
+            <option value="">Cargando especialidades…</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="boton">Registrar médico</button>
+      <div id="mensaje-medico" class="mensaje" role="status"></div>
+    </form>
+  </section>
+
+  <section class="seccion">
+    <h2>Todas las citas</h2>
+    <p class="subtitulo">Vista general del sistema. Solo un administrador puede eliminar citas.</p>
+    <div id="tabla-citas">
+      <p class="vacio">Cargando…</p>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const sesion = obtenerSesion();
+    if (!sesion) return;
+
+    await Promise.all([
+      cargarResumen(),
+      cargarEspecialidadesParaSelect(),
+      cargarClinicasParaSelect(),
+      cargarTodasLasCitas()
+    ]);
+  });
+
+  async function cargarResumen() {
+    const [respPacientes, respMedicos, respCitas] = await Promise.all([
+      llamadaApi("/api/pacientes"),
+      llamadaApi("/api/medicos"),
+      llamadaApi("/api/citas")
+    ]);
+    if (!respPacientes || !respMedicos || !respCitas) return;
+
+    const pacientes = await respPacientes.json();
+    const medicos = await respMedicos.json();
+    const citas = await respCitas.json();
+
+    const hoy = new Date().toISOString().split("T")[0];
+    const citasHoy = citas.filter(c => c.fecha === hoy).length;
+
+    const numeros = document.querySelectorAll("#tarjetas-resumen .numero");
+    numeros[0].textContent = pacientes.length;
+    numeros[1].textContent = medicos.length;
+    numeros[2].textContent = citas.length;
+    numeros[3].textContent = citasHoy;
+  }
+
+  async function cargarEspecialidadesParaSelect() {
+    const select = document.getElementById("med-especialidad");
+    const respuesta = await llamadaApi("/api/especialidades");
+    if (!respuesta) return;
+
+    const especialidades = await respuesta.json();
+    if (especialidades.length === 0) {
+      select.innerHTML = '<option value="">Primero creá una especialidad</option>';
+      return;
+    }
+    select.innerHTML = '<option value="">Seleccioná una especialidad</option>' +
+            especialidades.map(e => `<option value="${e.idEspecialidad}">${escaparHtml(e.nombreEspecialidad)}</option>`).join("");
+  }
+
+  document.getElementById("formulario-especialidad").addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    const mensaje = document.getElementById("mensaje-especialidad");
+
+    const respuesta = await llamadaApi("/api/especialidades", {
+      method: "POST",
+      body: JSON.stringify({
+        nombreEspecialidad: document.getElementById("esp-nombre").value,
+        descripcion: document.getElementById("esp-descripcion").value
+      })
+    });
+
+    if (respuesta && respuesta.ok) {
+      mensaje.textContent = "Especialidad creada.";
+      mensaje.className = "mensaje exito";
+      document.getElementById("formulario-especialidad").reset();
+      await cargarEspecialidadesParaSelect();
+    } else {
+      mensaje.textContent = "No se pudo crear la especialidad.";
+      mensaje.className = "mensaje error";
+    }
+  });
+
+  async function cargarClinicasParaSelect() {
+    const select = document.getElementById("con-clinica");
+    const respuesta = await llamadaApi("/api/clinicas");
+    if (!respuesta) return;
+
+    const clinicas = await respuesta.json();
+    if (clinicas.length === 0) {
+      select.innerHTML = '<option value="">Primero creá una clínica</option>';
+      return;
+    }
+    select.innerHTML = '<option value="">Seleccioná una clínica</option>' +
+            clinicas.map(c => `<option value="${c.idClinica}">${escaparHtml(c.nombre)}</option>`).join("");
+  }
+
+  document.getElementById("formulario-clinica").addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    const mensaje = document.getElementById("mensaje-clinica");
+
+    const respuesta = await llamadaApi("/api/clinicas", {
+      method: "POST",
+      body: JSON.stringify({
+        nombre: document.getElementById("cli-nombre").value,
+        direccion: document.getElementById("cli-direccion").value
+      })
+    });
+
+    if (respuesta && respuesta.ok) {
+      mensaje.textContent = "Clínica creada.";
+      mensaje.className = "mensaje exito";
+      document.getElementById("formulario-clinica").reset();
+      await cargarClinicasParaSelect();
+    } else {
+      mensaje.textContent = "No se pudo crear la clínica.";
+      mensaje.className = "mensaje error";
+    }
+  });
+
+  document.getElementById("formulario-consultorio").addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    const mensaje = document.getElementById("mensaje-consultorio");
+    const idClinica = document.getElementById("con-clinica").value;
+
+    if (!idClinica) {
+      mensaje.textContent = "Seleccioná una clínica.";
+      mensaje.className = "mensaje error";
+      return;
+    }
+
+    const respuesta = await llamadaApi("/api/consultorios", {
+      method: "POST",
+      body: JSON.stringify({
+        numero: document.getElementById("con-numero").value,
+        piso: Number(document.getElementById("con-piso").value) || 0,
+        equipoDisponible: document.getElementById("con-equipo").value,
+        clinica: { idClinica: Number(idClinica) }
+      })
+    });
+
+    if (respuesta && respuesta.ok) {
+      mensaje.textContent = "Consultorio creado.";
+      mensaje.className = "mensaje exito";
+      document.getElementById("formulario-consultorio").reset();
+    } else {
+      mensaje.textContent = "No se pudo crear el consultorio.";
+      mensaje.className = "mensaje error";
+    }
+  });
+
+  document.getElementById("formulario-medico").addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    const mensaje = document.getElementById("mensaje-medico");
+    const idEspecialidad = document.getElementById("med-especialidad").value;
+
+    if (!idEspecialidad) {
+      mensaje.textContent = "Seleccioná una especialidad.";
+      mensaje.className = "mensaje error";
+      return;
+    }
+
+    const respuesta = await llamadaApi("/api/medicos", {
+      method: "POST",
+      body: JSON.stringify({
+        nombre: document.getElementById("med-nombre").value,
+        apellido: document.getElementById("med-apellido").value,
+        correo: document.getElementById("med-correo").value,
+        password: document.getElementById("med-password").value,
+        telefono: document.getElementById("med-telefono").value,
+        fechaNacimiento: document.getElementById("med-fecha-nacimiento").value,
+        numeroColegiado: document.getElementById("med-colegiado").value,
+        aniosExperiencia: Number(document.getElementById("med-experiencia").value) || 0,
+        especialidad: { idEspecialidad: Number(idEspecialidad) }
+      })
+    });
+
+    if (respuesta && respuesta.ok) {
+      mensaje.textContent = "Médico registrado correctamente.";
+      mensaje.className = "mensaje exito";
+      document.getElementById("formulario-medico").reset();
+      await cargarResumen();
+    } else {
+      mensaje.textContent = "No se pudo registrar el médico. Revisá que el correo y el número de colegiado no estén repetidos.";
+      mensaje.className = "mensaje error";
+    }
+  });
+
+  async function cargarTodasLasCitas() {
+    const contenedor = document.getElementById("tabla-citas");
+    const respuesta = await llamadaApi("/api/citas");
+    if (!respuesta) return;
+
+    const citas = await respuesta.json();
+    if (citas.length === 0) {
+      contenedor.innerHTML = '<p class="vacio">No hay citas registradas todavía.</p>';
+      return;
+    }
+
+    citas.sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora));
+
+    const filas = citas.map(cita => `
+      <tr>
+        <td>${escaparHtml(cita.paciente.nombre)} ${escaparHtml(cita.paciente.apellido)}</td>
+        <td>${escaparHtml(cita.medico.nombre)} ${escaparHtml(cita.medico.apellido)}</td>
+        <td>${formatearFecha(cita.fecha)}</td>
+        <td>${formatearHora(cita.hora)}</td>
+        <td><span class="badge-estado badge-${cita.estado}">${cita.estado}</span></td>
+        <td><button class="boton-peligro" onclick="eliminarCita(${cita.idCita})">Eliminar</button></td>
+      </tr>
+    `).join("");
+
+    contenedor.innerHTML = `
+      <table>
+        <thead>
+          <tr><th>Paciente</th><th>Médico</th><th>Fecha</th><th>Hora</th><th>Estado</th><th></th></tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>
+    `;
+  }
+
+  async function eliminarCita(idCita) {
+    if (!confirm("¿Eliminar esta cita? Esta acción no se puede deshacer.")) return;
+
+    const respuesta = await llamadaApi(`/api/citas/${idCita}`, { method: "DELETE" });
+    if (respuesta && respuesta.ok) {
+      await cargarTodasLasCitas();
+      await cargarResumen();
+    } else {
+      alert("No se pudo eliminar la cita.");
+    }
+  }
+</script>
+
+</body>
+</html>

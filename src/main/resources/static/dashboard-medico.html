@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi agenda — Sistema de Citas Médicas</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<header class="encabezado">
+    <div class="marca">Sistema de Citas Médicas</div>
+    <div class="usuario-info">
+        <span>Hola, Dr(a). <strong id="nombre-usuario">—</strong></span>
+        <span class="badge-rol" id="rol-usuario">—</span>
+        <button class="boton-salir" id="boton-salir">Cerrar sesión</button>
+    </div>
+</header>
+
+<main class="contenido">
+    <h1>Mi agenda</h1>
+
+    <section class="seccion">
+        <h2>Citas asignadas</h2>
+        <p class="subtitulo">Confirmá las pendientes o registrá el diagnóstico después de atender.</p>
+        <div id="tabla-agenda">
+            <p class="vacio">Cargando…</p>
+        </div>
+    </section>
+
+    <section class="seccion" id="seccion-diagnostico" style="display: none;">
+        <h2>Registrar diagnóstico</h2>
+        <p class="subtitulo">Paciente: <strong id="paciente-diagnostico">—</strong></p>
+        <form id="formulario-diagnostico">
+            <div class="campo completo">
+                <label for="input-diagnostico">Diagnóstico</label>
+                <textarea id="input-diagnostico" required placeholder="Ej. Rinitis alérgica leve"></textarea>
+            </div>
+            <div class="campo completo">
+                <label for="input-tratamiento">Tratamiento</label>
+                <textarea id="input-tratamiento" placeholder="Ej. Loratadina 10mg cada 24h por 7 días"></textarea>
+            </div>
+            <button type="submit" class="boton" id="boton-guardar-diagnostico">Guardar diagnóstico</button>
+            <div id="mensaje-diagnostico" class="mensaje" role="status"></div>
+        </form>
+    </section>
+</main>
+
+<script src="app.js"></script>
+<script>
+    let sesion = null;
+    let pacienteSeleccionado = null;
+    let agendaActual = [];
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        sesion = obtenerSesion();
+        if (!sesion) return;
+        await cargarAgenda();
+    });
+
+    async function cargarAgenda() {
+        const contenedor = document.getElementById("tabla-agenda");
+        const respuesta = await llamadaApi(`/api/citas/medico/${sesion.usuario.id}`);
+        if (!respuesta) return;
+
+        const citas = await respuesta.json();
+        if (citas.length === 0) {
+            contenedor.innerHTML = '<p class="vacio">No tenés citas asignadas todavía.</p>';
+            return;
+        }
+
+        citas.sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+        agendaActual = citas;
+
+        const filas = citas.map(cita => {
+            const acciones = [];
+            if (cita.estado === "PENDIENTE") {
+                acciones.push(`<button class="boton-chico" onclick="confirmarCita(${cita.idCita})">Confirmar</button>`);
+            }
+            acciones.push(`<button class="boton-chico" onclick="prepararDiagnostico(${cita.idCita})">Registrar diagnóstico</button>`);
+
+            return `
+        <tr>
+          <td>${formatearFecha(cita.fecha)}</td>
+          <td>${formatearHora(cita.hora)}</td>
+          <td>${escaparHtml(cita.paciente.nombre)} ${escaparHtml(cita.paciente.apellido)}</td>
+          <td>N° ${escaparHtml(cita.consultorio.numero)}</td>
+          <td><span class="badge-estado badge-${cita.estado}">${cita.estado}</span></td>
+          <td>${acciones.join(" ")}</td>
+        </tr>
+      `;
+        }).join("");
+
+        contenedor.innerHTML = `
+      <table>
+        <thead>
+          <tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Consultorio</th><th>Estado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>
+    `;
+    }
+
+    async function confirmarCita(idCita) {
+        const cita = agendaActual.find(c => c.idCita === idCita);
+        if (!cita) return;
+
+        const respuesta = await llamadaApi(`/api/citas/${idCita}`, {
+            method: "PUT",
+            body: JSON.stringify({
+                fecha: cita.fecha,
+                hora: cita.hora,
+                motivoConsulta: cita.motivoConsulta,
+                estado: "CONFIRMADA"
+            })
+        });
+        if (respuesta && respuesta.ok) {
+            await cargarAgenda();
+        } else {
+            alert("No se pudo confirmar la cita.");
+        }
+    }
+
+    function prepararDiagnostico(idCita) {
+        const cita = agendaActual.find(c => c.idCita === idCita);
+        if (!cita) return;
+
+        pacienteSeleccionado = cita.paciente.idPersona;
+        document.getElementById("paciente-diagnostico").textContent =
+            `${cita.paciente.nombre} ${cita.paciente.apellido}`;
+        document.getElementById("seccion-diagnostico").style.display = "block";
+        document.getElementById("mensaje-diagnostico").className = "mensaje";
+        document.getElementById("seccion-diagnostico").scrollIntoView({ behavior: "smooth" });
+    }
+
+    document.getElementById("formulario-diagnostico").addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+        const boton = document.getElementById("boton-guardar-diagnostico");
+        const mensaje = document.getElementById("mensaje-diagnostico");
+        boton.disabled = true;
+        mensaje.className = "mensaje";
+
+        try {
+            // Buscamos si el paciente ya tiene historial; si no, lo creamos.
+            let idHistorial;
+            const respHistorial = await llamadaApi(`/api/historiales/paciente/${pacienteSeleccionado}`);
+            if (respHistorial.status === 404) {
+                const respCrear = await llamadaApi("/api/historiales", {
+                    method: "POST",
+                    body: JSON.stringify({ paciente: { idPersona: pacienteSeleccionado } })
+                });
+                const nuevoHistorial = await respCrear.json();
+                idHistorial = nuevoHistorial.idHistorial;
+            } else {
+                const historial = await respHistorial.json();
+                idHistorial = historial.idHistorial;
+            }
+
+            const diagnostico = document.getElementById("input-diagnostico").value;
+            const tratamiento = document.getElementById("input-tratamiento").value;
+
+            const respEntrada = await llamadaApi("/api/entradas-historial", {
+                method: "POST",
+                body: JSON.stringify({
+                    diagnostico,
+                    tratamiento,
+                    historial: { idHistorial }
+                })
+            });
+
+            if (respEntrada && respEntrada.ok) {
+                mensaje.textContent = "Diagnóstico guardado correctamente.";
+                mensaje.className = "mensaje exito";
+                document.getElementById("formulario-diagnostico").reset();
+            } else {
+                mensaje.textContent = "No se pudo guardar el diagnóstico.";
+                mensaje.className = "mensaje error";
+            }
+        } catch (error) {
+            mensaje.textContent = "Ocurrió un error de conexión.";
+            mensaje.className = "mensaje error";
+        } finally {
+            boton.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>

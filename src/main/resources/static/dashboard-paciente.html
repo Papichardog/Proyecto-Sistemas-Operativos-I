@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi panel — Sistema de Citas Médicas</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<header class="encabezado">
+    <div class="marca">Sistema de Citas Médicas</div>
+    <div class="usuario-info">
+        <span>Hola, <strong id="nombre-usuario">—</strong></span>
+        <span class="badge-rol" id="rol-usuario">—</span>
+        <button class="boton-salir" id="boton-salir">Cerrar sesión</button>
+    </div>
+</header>
+
+<main class="contenido">
+    <h1>Mi panel</h1>
+
+    <section class="seccion">
+        <h2>Tus próximas citas</h2>
+        <p class="subtitulo">Todas las citas agendadas a tu nombre.</p>
+        <div id="tabla-citas">
+            <p class="vacio">Cargando…</p>
+        </div>
+    </section>
+
+    <section class="seccion">
+        <h2>Agendar nueva cita</h2>
+        <p class="subtitulo">Elegí médico, consultorio, fecha y hora.</p>
+        <form id="formulario-cita">
+            <div class="grupo-campos">
+                <div class="campo">
+                    <label for="select-medico">Médico</label>
+                    <select id="select-medico" required>
+                        <option value="">Cargando médicos…</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="select-consultorio">Consultorio</label>
+                    <select id="select-consultorio" required>
+                        <option value="">Cargando consultorios…</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="input-fecha">Fecha</label>
+                    <input type="date" id="input-fecha" required>
+                </div>
+                <div class="campo">
+                    <label for="input-hora">Hora</label>
+                    <input type="time" id="input-hora" required>
+                </div>
+                <div class="campo completo">
+                    <label for="input-motivo">Motivo de la consulta</label>
+                    <textarea id="input-motivo" placeholder="Ej. Chequeo general, dolor de cabeza recurrente..."></textarea>
+                </div>
+            </div>
+            <button type="submit" class="boton" id="boton-agendar">Agendar cita</button>
+            <div id="mensaje-cita" class="mensaje" role="status"></div>
+        </form>
+    </section>
+
+    <section class="seccion">
+        <h2>Tu historial médico</h2>
+        <p class="subtitulo">Diagnósticos y tratamientos registrados por tus médicos.</p>
+        <div id="historial">
+            <p class="vacio">Cargando…</p>
+        </div>
+    </section>
+</main>
+
+<script src="app.js"></script>
+<script>
+    let sesion = null;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        sesion = obtenerSesion();
+        if (!sesion) return;
+
+        document.getElementById("input-fecha").min = new Date().toISOString().split("T")[0];
+
+        await Promise.all([
+            cargarCitas(),
+            cargarMedicos(),
+            cargarConsultorios(),
+            cargarHistorial()
+        ]);
+    });
+
+    async function cargarCitas() {
+        const contenedor = document.getElementById("tabla-citas");
+        const respuesta = await llamadaApi(`/api/citas/paciente/${sesion.usuario.id}`);
+        if (!respuesta) return;
+
+        const citas = await respuesta.json();
+        if (citas.length === 0) {
+            contenedor.innerHTML = '<p class="vacio">Todavía no tenés citas agendadas.</p>';
+            return;
+        }
+
+        citas.sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+
+        const filas = citas.map(cita => `
+      <tr>
+        <td>${formatearFecha(cita.fecha)}</td>
+        <td>${formatearHora(cita.hora)}</td>
+        <td>${escaparHtml(cita.medico.nombre)} ${escaparHtml(cita.medico.apellido)}<br>
+            <span style="color: var(--text-muted); font-size: 12px;">${escaparHtml(cita.medico.especialidad.nombreEspecialidad)}</span></td>
+        <td>N° ${escaparHtml(cita.consultorio.numero)}</td>
+        <td><span class="badge-estado badge-${cita.estado}">${cita.estado}</span></td>
+      </tr>
+    `).join("");
+
+        contenedor.innerHTML = `
+      <table>
+        <thead>
+          <tr><th>Fecha</th><th>Hora</th><th>Médico</th><th>Consultorio</th><th>Estado</th></tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>
+    `;
+    }
+
+    async function cargarMedicos() {
+        const select = document.getElementById("select-medico");
+        const respuesta = await llamadaApi("/api/medicos");
+        if (!respuesta) return;
+
+        const medicos = await respuesta.json();
+        select.innerHTML = '<option value="">Seleccioná un médico</option>' +
+            medicos.map(m => `<option value="${m.idPersona}">${escaparHtml(m.nombre)} ${escaparHtml(m.apellido)} — ${escaparHtml(m.especialidad.nombreEspecialidad)}</option>`).join("");
+    }
+
+    async function cargarConsultorios() {
+        const select = document.getElementById("select-consultorio");
+        const respuesta = await llamadaApi("/api/consultorios");
+        if (!respuesta) return;
+
+        const consultorios = await respuesta.json();
+        select.innerHTML = '<option value="">Seleccioná un consultorio</option>' +
+            consultorios.map(c => `<option value="${c.idConsultorio}">N° ${escaparHtml(c.numero)} — Piso ${c.piso}</option>`).join("");
+    }
+
+    document.getElementById("formulario-cita").addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+        const boton = document.getElementById("boton-agendar");
+        const mensaje = document.getElementById("mensaje-cita");
+
+        const idMedico = document.getElementById("select-medico").value;
+        const idConsultorio = document.getElementById("select-consultorio").value;
+        const fecha = document.getElementById("input-fecha").value;
+        const hora = document.getElementById("input-hora").value;
+        const motivo = document.getElementById("input-motivo").value;
+
+        boton.disabled = true;
+        mensaje.className = "mensaje";
+
+        const respuesta = await llamadaApi("/api/citas", {
+            method: "POST",
+            body: JSON.stringify({
+                fecha,
+                hora: hora + ":00",
+                motivoConsulta: motivo,
+                paciente: { idPersona: sesion.usuario.id },
+                medico: { idPersona: Number(idMedico) },
+                consultorio: { idConsultorio: Number(idConsultorio) }
+            })
+        });
+
+        boton.disabled = false;
+
+        if (respuesta && respuesta.ok) {
+            mensaje.textContent = "Cita agendada correctamente.";
+            mensaje.className = "mensaje exito";
+            document.getElementById("formulario-cita").reset();
+            await cargarCitas();
+        } else {
+            mensaje.textContent = "No se pudo agendar la cita. Revisá los datos e intentá de nuevo.";
+            mensaje.className = "mensaje error";
+        }
+    });
+
+    async function cargarHistorial() {
+        const contenedor = document.getElementById("historial");
+        const respuesta = await llamadaApi(`/api/historiales/paciente/${sesion.usuario.id}`);
+        if (!respuesta) return;
+
+        if (respuesta.status === 404) {
+            contenedor.innerHTML = '<p class="vacio">Todavía no tenés historial médico registrado.</p>';
+            return;
+        }
+
+        const historial = await respuesta.json();
+        if (!historial.entradas || historial.entradas.length === 0) {
+            contenedor.innerHTML = '<p class="vacio">Tu historial existe pero no tiene entradas todavía.</p>';
+            return;
+        }
+
+        const entradas = [...historial.entradas].sort((a, b) => b.fecha.localeCompare(a.fecha));
+        const filas = entradas.map(entrada => `
+      <tr>
+        <td>${formatearFecha(entrada.fecha)}</td>
+        <td>${escaparHtml(entrada.diagnostico)}</td>
+        <td>${escaparHtml(entrada.tratamiento || "—")}</td>
+      </tr>
+    `).join("");
+
+        contenedor.innerHTML = `
+      <table>
+        <thead><tr><th>Fecha</th><th>Diagnóstico</th><th>Tratamiento</th></tr></thead>
+        <tbody>${filas}</tbody>
+      </table>
+    `;
+    }
+</script>
+
+</body>
+</html>
