@@ -7,13 +7,17 @@ services:
       POSTGRES_DB: citas_medicas
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # 1. Agregamos esta línea para forzar la ruta compatible con Postgres 18+
-      PGDATA: /var/lib/postgresql
+      # PGDATA en una SUBCARPETA del punto de montaje (no la raíz).
+      # Esto es lo que realmente evita el problema de arranque largo en
+      # AWS: si el volumen nuevo trae una carpeta "lost+found" (común en
+      # volúmenes EBS), Postgres se niega a inicializar si su carpeta de
+      # datos no está vacía. Con PGDATA apuntando a una subcarpeta, esa
+      # subcarpeta siempre arranca limpia, sin importar qué más haya en
+      # la raíz del volumen.
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      # 2. Corregimos el volumen quitándole el "/data" del final
-      - citas_db_data:/var/lib/postgresql
-      # Postgres ejecuta automáticamente cualquier .sql que encuentre acá
-      # SOLO la primera vez que arranca (cuando el volumen está vacío).
+      # Volumen montado en la ruta ESTÁNDAR de la imagen (con /data).
+      - citas_db_data:/var/lib/postgresql/data
       - ./db-init:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
