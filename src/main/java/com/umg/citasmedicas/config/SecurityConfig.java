@@ -3,12 +3,13 @@ package com.umg.citasmedicas.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -25,23 +26,17 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Configuración de CORS: le dice al navegador qué orígenes distintos
-    // al del backend tienen permiso de llamar a esta API.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Usamos PATRONES en vez de una lista fija de orígenes exactos.
-        // Motivo real: con una lista fija (http://localhost:8080, :63342,
-        // :5500) se nos olvidó agregar el puerto 8081 cuando metimos
-        // Nginx, y eso causó un 403 real en producción con Docker. Con
-        // un patrón "http://localhost:*" cubrimos cualquier puerto local
-        // (8080 de Spring Boot directo, 8081 de Nginx, 63342 de la
-        // vista previa de IntelliJ, o el que uses a futuro) sin tener
-        // que acordarnos de agregar cada uno a mano.
+        // Patrón con comodín también para la IP de AWS: cubre cualquier
+        // puerto que publiques ahí (8081 ahora, el que sea después),
+        // sin tener que acordarnos de agregar cada uno a mano.
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
-                "http://127.0.0.1:*"
+                "http://127.0.0.1:*",
+                "http://13.220.83.251:*"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
@@ -50,6 +45,21 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
         return source;
+    }
+
+    // Reemplaza el comportamiento por defecto de httpBasic (que manda el
+    // header WWW-Authenticate: Basic y por eso dispara el cuadro gris
+    // nativo del navegador) por una simple respuesta 401 en JSON. La
+    // autenticación con Basic Auth sigue funcionando igual para quien
+    // mande el header Authorization a mano (tu app.js) — lo único que
+    // cambia es qué pasa cuando NO lo manda.
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"No autenticado\"}");
+        };
     }
 
     @Bean
@@ -61,13 +71,23 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Archivos estáticos reales de tu proyecto: la raíz,
+                        // cualquier .html/.js/.css suelto, y el favicon.
+                        // Son solo la "carcasa" visual, sin datos sensibles
+                        // adentro — el navegador tiene que poder navegar a
+                        // ellos SIEMPRE sin pedir credenciales, o vas a
+                        // seguir viendo el cuadro gris en cada redirección.
+                        .requestMatchers(HttpMethod.GET, "/", "/*.html", "/*.js", "/*.css", "/favicon.ico").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/pacientes").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/medicos", "/api/administradores", "/api/especialidades")
                         .hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.DELETE, "/**").hasRole("ADMINISTRADOR")
+                        // /api/auth/me y todo lo demás SÍ necesitan
+                        // autenticación real — es justo lo que le dice a
+                        // tu frontend quién inició sesión.
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults());
+                .httpBasic(basic -> basic.authenticationEntryPoint(authenticationEntryPoint()));
 
         return http.build();
     }
