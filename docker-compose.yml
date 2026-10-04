@@ -7,25 +7,19 @@ services:
       POSTGRES_DB: citas_medicas
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # PGDATA en una SUBCARPETA del punto de montaje (no la raíz).
-      # Esto es lo que realmente evita el problema de arranque largo en
-      # AWS: si el volumen nuevo trae una carpeta "lost+found" (común en
-      # volúmenes EBS), Postgres se niega a inicializar si su carpeta de
-      # datos no está vacía. Con PGDATA apuntando a una subcarpeta, esa
-      # subcarpeta siempre arranca limpia, sin importar qué más haya en
-      # la raíz del volumen.
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      # Volumen montado en la ruta ESTÁNDAR de la imagen (con /data).
       - citas_db_data:/var/lib/postgresql/data
       - ./db-init:/docker-entrypoint-initdb.d
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d citas_medicas"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  redis:
+    image: redis:alpine
+    container_name: citas-redis
 
   app1:
     build: .
@@ -34,9 +28,13 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/citas_medicas
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   app2:
     build: .
@@ -45,9 +43,13 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/citas_medicas
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   nginx:
     image: nginx:alpine
