@@ -7,7 +7,7 @@ import org.springframework.cache.annotation.EnableCaching;
 @SpringBootApplication
 public class Application {
 
-    static void main(String[] args) {
+    public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
 
