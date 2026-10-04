@@ -7,9 +7,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.io.Serializable;
+
+// Serializable: necesario para que Spring pueda guardar este objeto en
+// Redis usando la serialización por defecto (binaria de Java). Sin
+// esto, @Cacheable falla al intentar escribir en la caché.
 @Entity
 @Table(name = "especialidades")
-public class Especialidad {
+public class Especialidad implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
