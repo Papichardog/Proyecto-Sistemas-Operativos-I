@@ -12,7 +12,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+/**
+ * Controlador REST encargado de exponer información del usuario autenticado.
+ *
+ * Base URL: /api/auth*/
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -38,12 +41,12 @@ public class AuthController {
         // Spring Security ya validó las credenciales antes de que este método
         // se ejecute; si llegamos hasta acá, "authentication" es de alguien real.
         String correo = authentication.getName();
-
+        // Se determina el rol del usuario a partir de sus autoridades.
         boolean esAdministrador = authentication.getAuthorities().stream()
                 .anyMatch(autoridad -> autoridad.getAuthority().equals("ROLE_ADMINISTRADOR"));
         boolean esMedico = authentication.getAuthorities().stream()
                 .anyMatch(autoridad -> autoridad.getAuthority().equals("ROLE_MEDICO"));
-
+        // Si es administrador, se busca su registro y se devuelve su información.
         if (esAdministrador) {
             Administrador administrador = administradorRepository.findByCorreo(correo).orElseThrow();
             return ResponseEntity.ok(new UsuarioAutenticadoResponse(
@@ -53,7 +56,7 @@ public class AuthController {
                     administrador.getCorreo(),
                     "ADMINISTRADOR"));
         }
-
+        // Si es médico, se busca su registro y se devuelve su información.
         if (esMedico) {
             Medico medico = medicoRepository.findByCorreo(correo).orElseThrow();
             return ResponseEntity.ok(new UsuarioAutenticadoResponse(
@@ -63,7 +66,7 @@ public class AuthController {
                     medico.getCorreo(),
                     "MEDICO"));
         }
-
+        // Si no es administrador ni médico, se asume que es paciente.
         Paciente paciente = pacienteRepository.findByCorreo(correo).orElseThrow();
         return ResponseEntity.ok(new UsuarioAutenticadoResponse(
                 paciente.getIdPersona(),
