@@ -27,26 +27,44 @@ public class AdministradorController {
         this.administradorRepository = administradorRepository;
         this.passwordEncoder = passwordEncoder;
     }
-
+/**
+     * Lista todos los administradores registrados.
+     *
+     * @return lista de administradores
+     */
     @GetMapping
     public List<Administrador> listarTodos() {
         return administradorRepository.findAll();
     }
-
+ /**
+     * Obtiene un administrador por su ID.
+     *
+     * @param id identificador del administrador
+     * @return administrador encontrado o 404 si no existe
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Administrador> obtenerPorId(@PathVariable Integer id) {
         return administradorRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
+    /**
+     * Crea un nuevo administrador.
+     * La contraseña se almacena encriptada antes de guardar el registro.
+     *
+     * @param administrador datos del administrador a crear
+     * @return administrador creado con estado 201
+     */
     @PostMapping
     public ResponseEntity<Administrador> crear(@RequestBody Administrador administrador) {
         administrador.setPassword(passwordEncoder.encode(administrador.getPassword()));
         Administrador guardado = administradorRepository.save(administrador);
         return ResponseEntity.status(HttpStatus.CREATED).body(guardado);
     }
-
+/**
+     * Actualiza los datos de un administrador existente.
+     * Si se envía una nueva contraseña, esta se encripta antes de guardarla.
+     */
     @PutMapping("/{id}")
     public ResponseEntity<Administrador> actualizar(@PathVariable Integer id, @RequestBody Administrador datos) {
         return administradorRepository.findById(id)
@@ -64,7 +82,7 @@ public class AdministradorController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-
+// Endpoint para eliminar un administrador validando primero si existe.
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         if (!administradorRepository.existsById(id)) {
