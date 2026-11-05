@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+// Controlador REST que expone las operaciones CRUD para la gestión de consultorios.
+// Sirve como punto de entrada para administrar los espacios físicos disponibles en cada clínica.
 @RestController
 @RequestMapping("/api/consultorios")
 public class ConsultorioController {
@@ -58,6 +60,8 @@ public class ConsultorioController {
     public ResponseEntity<Consultorio> actualizar(@PathVariable Integer id, @RequestBody Consultorio datos) {
         return consultorioRepository.findById(id)
                 .map(existente -> {
+                    // Se actualizan únicamente los atributos específicos del consultorio.
+                    // La relación con la clínica no se modifica para evitar reasignaciones accidentales de ubicación.
                     existente.setNumero(datos.getNumero());
                     existente.setPiso(datos.getPiso());
                     existente.setEquipoDisponible(datos.getEquipoDisponible());
