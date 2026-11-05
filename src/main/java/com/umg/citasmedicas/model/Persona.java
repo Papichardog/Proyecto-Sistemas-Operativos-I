@@ -11,6 +11,9 @@ import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 
+// Clase base abstracta que centraliza los datos comunes de todos los actores del sistema.
+// Al usar la estrategia de herencia JOINED, JPA creará una tabla "personas" para estos campos,
+// y las entidades hijas (Paciente, Medico, Administrador) tendrán sus propias tablas vinculadas mediante llaves foráneas.
 @Entity
 @Table(name = "personas")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -21,6 +24,9 @@ public abstract class Persona {
     @Column(name = "id_persona")
     private Integer idPersona;
 
+    // Estos atributos serán compartidos y heredados por todas las clases hijas.
+    // Destaca el campo "correo" configurado como único (unique = true), ya que se utilizará como 
+    // nombre de usuario (username) para la autenticación en Spring Security.
     @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
 
