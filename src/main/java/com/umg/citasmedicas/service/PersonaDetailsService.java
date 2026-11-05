@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+// Implementación personalizada de UserDetailsService para gestionar la autenticación de Spring Security.
+// Se encarga de buscar las credenciales del usuario en las diferentes tablas de roles del sistema.
 @Service
 public class PersonaDetailsService implements UserDetailsService {
 
@@ -53,6 +55,8 @@ public class PersonaDetailsService implements UserDetailsService {
         throw new UsernameNotFoundException("No existe un usuario con el correo: " + correo);
     }
 
+    // Método auxiliar que mapea la información de nuestra base de datos al objeto User de Spring Security.
+    // Añade automáticamente el prefijo "ROLE_" que Spring utiliza internamente para evaluar permisos.
     private UserDetails construirUserDetails(String correo, String passwordEncriptada, String rol) {
         return User.builder()
                 .username(correo)
