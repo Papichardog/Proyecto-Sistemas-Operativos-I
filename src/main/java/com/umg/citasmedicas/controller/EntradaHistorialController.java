@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+// Controlador REST que gestiona las anotaciones individuales dentro del historial médico de los pacientes.
+// Permite registrar, consultar y modificar diagnósticos y tratamientos específicos en el expediente.
 @RestController
 @RequestMapping("/api/entradas-historial")
 public class EntradaHistorialController {
@@ -49,6 +51,8 @@ public class EntradaHistorialController {
 
     @PostMapping
     public ResponseEntity<EntradaHistorial> crear(@RequestBody EntradaHistorial entrada) {
+        // Antes de guardar la entrada, validamos que el historial médico padre exista en la base de datos.
+        // Esto asegura la integridad referencial para que no queden entradas "huérfanas".
         HistorialMedico historial = historialMedicoRepository.findById(entrada.getHistorial().getIdHistorial())
                 .orElseThrow(() -> new IllegalArgumentException("Historial medico no encontrado"));
         entrada.setHistorial(historial);
@@ -61,6 +65,9 @@ public class EntradaHistorialController {
     public ResponseEntity<EntradaHistorial> actualizar(@PathVariable Integer id, @RequestBody EntradaHistorial datos) {
         return entradaHistorialRepository.findById(id)
                 .map(existente -> {
+                    // Se actualizan únicamente los datos clínicos de la visita.
+                    // El ID del historial original se mantiene intacto para evitar que una entrada 
+                    // sea movida accidentalmente al expediente de otro paciente.
                     existente.setFecha(datos.getFecha());
                     existente.setDiagnostico(datos.getDiagnostico());
                     existente.setTratamiento(datos.getTratamiento());
